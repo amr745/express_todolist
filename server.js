@@ -6,6 +6,7 @@ const express = require("express") //web framework
 const mongoose = require("mongoose") //Object Document Manger (Work with DB)
 const methodOverride = require("method-override") //Override request methods
 const morgan = require("morgan") //be used for logging
+const res = require("express/lib/response")
 
 ///////////////////////
 //Setup Database Connection
@@ -25,9 +26,17 @@ cxn
 .on("close", () => console.log("The Mongo Connection is Closed"))
 .on("terror", () => console.log("The Mongo Connection is Open"))
 
-/////////////////////
-//Schemas and Models
-///////////////////////
+/////////////////////////////////////////
+// Schemas and Models
+//////////////////////////////////////
+// Schema the definition of our data type
+// model, the object for working with our data type
+const todoSchema = new mongoose.Schema({
+    text: String,
+    completed: Boolean
+}, {timestamps: true})
+
+const Todo = mongoose.model("Todo", todoSchema)
 
 //////////////////////
 //Create Express Application
@@ -45,8 +54,26 @@ app.use("/static", express.static("static")) //server files statically
 /////////////////////////
 // Routes
 /////////////////////////
-app.get("/", (req,res) => {
-    res.send("<h1>Hello World</h1>")
+app.get("/", async (req, res) => {
+    // go get todos
+    const todos = await Todo.find({})
+
+    // render index.ejs
+    res.render("index.ejs", {todos})
+})
+
+
+app.get("/todo/seed", async (req, res) => {
+    // delete all existing todos
+    await Todo.remove({}).catch((err) => res.send(err))
+    // add your sample todos
+    const todos = await Todo.create([
+        {text: "eat breakfast", completed: false},
+        {text: "eat lunch", completed: false},
+        {text: "eat dinner", completed: false}
+    ]).catch((err) => res.send(err))
+    // send the todos as json
+    res.json(todos)
 })
 
 //////////////////
