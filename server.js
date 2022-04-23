@@ -76,6 +76,25 @@ app.get("/todo/seed", async (req, res) => {
     res.json(todos)
 })
 
+app.post("/todo", async(req,res) => {
+    //create the todo
+    await Todo.create(req.body).catch((err) => res.send(err))
+    //redirect back to ami page
+    res.redirect("/")
+})
+
+app.put("/todo/:id", async (req, res) => {
+    // get the id from params
+    const id = req.params.id
+    // get the todo to be updated
+    const todo = await Todo.findById(id)
+    // update the todos completed property
+    todo.completed = true
+    await todo.save() // save changes
+    // redirect back to main page
+    res.redirect("/")
+})
+
 //////////////////
 // Server Listener
 ///////////////////////
